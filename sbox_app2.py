@@ -82,7 +82,7 @@ def is_invertible_gf2(M):
 
 initial_affines = {
     name: M for name, M in AFFINE_MATRICES.items()
-    if name != "AES"
+    # if name != "AES"
 }
 
 def generate_remaining_affines(existing_dict, target_total=128):
@@ -187,7 +187,6 @@ def walsh_hadamard_transform(func):
                 wf[j + h] = x - y
         h *= 2
     return wf
-
 def calculate_nl(sbox):
     min_nl = 256
     for i in range(8):
@@ -198,7 +197,6 @@ def calculate_nl(sbox):
         if nl < min_nl:
             min_nl = nl
     return int(min_nl)
-
 def calculate_sac(sbox):
     total_avg_hamming_weight = 0
     for i in range(8):
@@ -209,7 +207,6 @@ def calculate_sac(sbox):
             diff_hamming_weights.append(bin(output_diff).count('1'))
         total_avg_hamming_weight += sum(diff_hamming_weights) / 256.0
     return total_avg_hamming_weight / 8.0
-
 def calculate_bic_nl(sbox):
     min_bic_nl = 256
     for i in range(8):
@@ -221,7 +218,6 @@ def calculate_bic_nl(sbox):
             if nl < min_bic_nl:
                 min_bic_nl = nl
     return int(min_bic_nl)
-
 def calculate_bic_sac(sbox):
     total_sac = 0
     count = 0
@@ -237,7 +233,6 @@ def calculate_bic_sac(sbox):
                     count += 1
     if count == 0: return 0
     return total_sac / count
-
 def calculate_lap(sbox):
     max_spectrum = 0
     for i in range(1, 256):
@@ -251,7 +246,6 @@ def calculate_lap(sbox):
         if current_max > max_spectrum:
             max_spectrum = current_max
     return max_spectrum / 256.0
-
 def calculate_dap(sbox):
     max_diff = 0
     for dx in range(1, 256):
@@ -263,7 +257,6 @@ def calculate_dap(sbox):
         if current_max > max_diff:
             max_diff = current_max
     return max_diff / 256.0
-
 def calculate_du(sbox):
     max_diff = 0
     for dx in range(1, 256):
@@ -275,7 +268,6 @@ def calculate_du(sbox):
         if current_max > max_diff:
             max_diff = current_max
     return int(max_diff)
-
 def calculate_ad(sbox):
     max_deg = 0
     for i in range(8):
@@ -295,11 +287,105 @@ def calculate_ad(sbox):
         if deg > max_deg: max_deg = deg
     return int(max_deg)
 
+
+#Transparency Order
+def calculate_to(sbox):
+    """
+    Transparency Order (TO): Mengukur ketahanan terhadap Side-Channel Attacks (DPA).
+    Berdasarkan definisi Prouff. Semakin RENDAH semakin baik.
+    """
+    N = 256
+    n = 8
+    
+    # Menghitung autokorelasi untuk setiap bit output
+    max_to = 0
+    # Kita ambil rata-rata kebocoran dari komponen fungsi boolean bitwise
+    all_autocorr = []
+    
+    for a in range(1, N):
+        current_sum = 0
+        for v in range(N):
+            # HW = Hamming Weight dari v
+            hw_v = bin(v).count('1')
+            
+            # Menghitung korelasi derivatif
+            # D_a f(x) = f(x) ^ f(x ^ a)
+            correlation = 0
+            for x in range(N):
+                # Memeriksa parity dari S(x) ^ S(x ^ a) terhadap v
+                if bin((sbox[x] ^ sbox[x ^ a]) & v).count('1') % 2 == 0:
+                    correlation += 1
+                else:
+                    correlation -= 1
+            
+            current_sum += abs(correlation)
+        all_autocorr.append(current_sum)
+    
+    # Normalisasi skala (umumnya dalam range 0.1 - 0.9 untuk S-Box 8-bit)
+    to_score = max(all_autocorr) / (N**2)
+    return round(to_score, 6)
+
+# CI
+def calculate_ci(sbox):
+    """
+    Correlation Immunity (CI): Mengukur apakah bit output independen dari bit input.
+    Menggunakan Walsh-Hadamard Transform.
+    Nilai yang dikembalikan adalah 'Orde' (t). Semakin TINGGI semakin baik.
+    """
+    N = 256
+    n = 8
+    
+    # Mencari nilai t tertinggi
+    # S-Box memiliki CI orde t jika WHT(f) = 0 untuk 1 <= HW(mask) <= t
+    max_t = 0
+    
+    # Cek untuk setiap bit fungsi (8 fungsi boolean)
+    possible_t = []
+    
+    for i in range(8):
+        # Ambil fungsi bit ke-i
+        func = [(sbox[x] >> i) & 1 for x in range(N)]
+        wf = walsh_hadamard_transform(func)
+        
+        current_t = 0
+        for t in range(1, n + 1):
+            is_imun = True
+            for mask in range(1, N):
+                if bin(mask).count('1') == t:
+                    if wf[mask] != 0:
+                        is_imun = False
+                        break
+            if is_imun:
+                current_t = t
+            else:
+                break
+        possible_t.append(current_t)
+        
+    # CI S-Box adalah nilai minimum dari CI semua fungsi komponennya
+    return int(min(possible_t))
+
 # --- Calculate S-box metrics ---
 sbox_metrics = {}
 
-for name, sbox in SBOXES.items():
-    metrics = {
+# for name, sbox in SBOXES.items():
+#     metrics = {
+#         "NL": calculate_nl(sbox),
+#         "SAC": calculate_sac(sbox),
+#         "BIC_NL": calculate_bic_nl(sbox),
+#         "BIC_SAC": calculate_bic_sac(sbox),
+#         "LAP": calculate_lap(sbox),
+#         "DAP": calculate_dap(sbox),
+#         "DU": calculate_du(sbox),
+#         "AD": calculate_ad(sbox),
+#         "TO" : calculate_to(sbox),
+#         "CI" : calculate_ci(sbox)
+#     }
+#     sbox_metrics[name] = metrics
+
+@st.cache_data(show_spinner=True)
+def get_single_sbox_metrics(sbox):
+    """Fungsi ini hanya menghitung metrik untuk S-Box yang dipilih user"""
+    return {
         "NL": calculate_nl(sbox),
         "SAC": calculate_sac(sbox),
         "BIC_NL": calculate_bic_nl(sbox),
@@ -307,11 +393,12 @@ for name, sbox in SBOXES.items():
         "LAP": calculate_lap(sbox),
         "DAP": calculate_dap(sbox),
         "DU": calculate_du(sbox),
-        "AD": calculate_ad(sbox)
+        "AD": calculate_ad(sbox),
+        "TO" : calculate_to(sbox),
+        "CI" : calculate_ci(sbox)
     }
-    sbox_metrics[name] = metrics
 
-sbox_df = pd.DataFrame.from_dict(sbox_metrics, orient='index')
+# sbox_df = pd.DataFrame.from_dict(sbox_metrics, orient='index')
 
 # --- Streamlit app layout ---
 st.set_page_config(layout="wide")
@@ -319,6 +406,16 @@ st.title('S-Box Cryptographic Properties Analysis')
 
 # 1. Select S-box
 selected_sbox_name = st.selectbox("Select an S-box:", list(SBOXES.keys()))
+
+st.header("Affine Transformation Matrix (8×8)")
+M = AFFINE_128_DICT[selected_sbox_name]
+
+df_affine = pd.DataFrame(
+    M,
+    columns=[f"b{i}" for i in range(8)],
+    index=[f"r{i}" for i in range(8)]
+)
+st.dataframe(df_affine)
 
 # 2. Function to format S-box for display
 def format_sbox_grid(sbox):
@@ -336,6 +433,137 @@ if selected_sbox_name:
 
 # 4 & 5. Display cryptographic properties
 st.header(f"Cryptographic Properties for S-box: {selected_sbox_name}")
-if selected_sbox_name:
-    properties = sbox_df.loc[selected_sbox_name]
-    st.dataframe(properties.to_frame().T)
+current_metrics = get_single_sbox_metrics(selected_sbox)
+# Tampilkan hasil dalam DataFrame
+metrics_df = pd.DataFrame([current_metrics])
+st.dataframe(metrics_df, use_container_width=True)
+# if selected_sbox_name:
+#     properties = sbox_df.loc[selected_sbox_name]
+#     st.dataframe(properties.to_frame().T)
+
+
+
+#AES Encryption
+# --- AES Implementation Functions ---
+
+def sub_bytes(state, sbox):
+    for i in range(len(state)):
+        state[i] = sbox[state[i]]
+
+def shift_rows(state):
+    # state diwakili sebagai list 16 byte (kolom per kolom)
+    # [0 4 8  12]
+    # [1 5 9  13]
+    # [2 6 10 14]
+    # [3 7 11 15]
+    res = [0] * 16
+    res[0], res[4], res[8], res[12] = state[0], state[4], state[8], state[12]
+    res[5], res[9], res[13], res[1] = state[1], state[5], state[9], state[13]
+    res[10], res[14], res[2], res[6] = state[2], state[6], state[10], state[14]
+    res[15], res[3], res[7], res[11] = state[3], state[7], state[11], state[15]
+    return res
+
+def mix_columns(state):
+    def gmul(a, b): # Perkalian Galois Field sederhana
+        p = 0
+        for _ in range(8):
+            if b & 1: p ^= a
+            hi_bit_set = a & 0x80
+            a <<= 1
+            if hi_bit_set: a ^= 0x1B
+            b >>= 1
+        return p & 0xFF
+
+    new_state = [0] * 16
+    for i in range(4): # per kolom
+        col = state[i*4 : i*4+4]
+        new_state[i*4]     = gmul(0x02, col[0]) ^ gmul(0x03, col[1]) ^ col[2] ^ col[3]
+        new_state[i*4 + 1] = col[0] ^ gmul(0x02, col[1]) ^ gmul(0x03, col[2]) ^ col[3]
+        new_state[i*4 + 2] = col[0] ^ col[1] ^ gmul(0x02, col[2]) ^ gmul(0x03, col[3])
+        new_state[i*4 + 3] = gmul(0x03, col[0]) ^ col[1] ^ col[2] ^ gmul(0x02, col[3])
+    return new_state
+
+def aes_encrypt_block(plaintext_block, rounds, round_keys, sbox):
+    # plaintext_block: list of 16 integers
+    state = [plaintext_block[i] ^ round_keys[0][i] for i in range(16)]
+    
+    for r in range(1, rounds):
+        sub_bytes(state, sbox)
+        state = shift_rows(state)
+        state = mix_columns(state)
+        rk = round_keys[r]
+        state = [state[i] ^ rk[i] for i in range(16)]
+        
+    # Round terakhir (tanpa MixColumns)
+    sub_bytes(state, sbox)
+    state = shift_rows(state)
+    rk = round_keys[rounds]
+    state = [state[i] ^ rk[i] for i in range(16)]
+    return state
+
+def simple_key_expansion(key_16_bytes, sbox):
+    # Versi sangat sederhana untuk simulasi (hanya mengulang kunci)
+    # Di dunia nyata, ini menggunakan Rcon dan S-Box
+    keys = []
+    for i in range(11):
+        keys.append([(b + i) % 256 for b in key_16_bytes])
+    return keys
+
+def pad_text(text):
+    # Menggunakan PKCS7 padding sederhana
+    padding_len = 16 - (len(text) % 16)
+    padding = bytes([padding_len] * padding_len)
+    return text.encode('utf-8') + padding
+
+def encrypt_full_text(plaintext, round_keys, sbox):
+    # 1. Padding teks
+    padded_data = pad_text(plaintext)
+    
+    # 2. Pecah menjadi blok-blok 16 byte
+    ciphertext_full = []
+    for i in range(0, len(padded_data), 16):
+        block = list(padded_data[i:i+16])
+        # Enkripsi per blok menggunakan fungsi aes_encrypt_block yang sudah dibuat
+        encrypted_block = aes_encrypt_block(block, 10, round_keys, sbox)
+        ciphertext_full.extend(encrypted_block)
+    
+    return ciphertext_full
+
+# --- Section 6: Try Encryption ---
+st.divider()
+st.header(f"AES Text Encryption Simulation")
+st.write(f"Menggunakan S-Box: **{selected_sbox_name}**")
+
+col1, col2 = st.columns(2)
+with col1:
+    user_text = st.text_area("Input Plaintext (Teks Biasa):", "Halo, ini adalah pesan rahasia yang panjangnya lebih dari enam belas karakter.")
+with col2:
+    user_key = st.text_input("Encryption Key (Max 16 chars):", "kuncirahasia1234")
+
+if st.button("Encrypt Now"):
+    if not user_key:
+        st.error("Key tidak boleh kosong!")
+    else:
+        # Menyiapkan kunci 16 byte
+        key_bytes = list(user_key.encode('utf-8').ljust(16, b'\0')[:16])
+        round_keys = simple_key_expansion(key_bytes, selected_sbox)
+        
+        # Proses Enkripsi
+        with st.spinner("Memproses enkripsi blok demi blok..."):
+            cipher_output = encrypt_full_text(user_text, round_keys, selected_sbox)
+        
+        # Menampilkan hasil
+        st.subheader("Hasil Enkripsi")
+        
+        # Tampilan Hex
+        hex_output = "".join(f"{b:02x}" for b in cipher_output)
+        st.write("**Ciphertext (Hexadecimal):**")
+        st.code(hex_output)
+        
+        # Tampilan Base64 (lebih umum untuk transmisi data)
+        import base64
+        b64_output = base64.b64encode(bytes(cipher_output)).decode('utf-8')
+        st.write("**Ciphertext (Base64):**")
+        st.code(b64_output)
+
+        st.info(f"Teks asli panjangnya {len(user_text)} karakter, setelah padding menjadi {len(cipher_output)} byte ({len(cipher_output)//16} blok AES).")
