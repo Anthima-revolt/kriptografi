@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from collections import Counter
+from PIL import Image
+import io
 
 
 # --- Re-define Matrix and S-box generation functions and data ---
@@ -584,3 +586,142 @@ with tab2:
                 st.error("❌ Format Hex tidak valid. Pastikan hanya berisi karakter 0-9 dan a-f.")
             except Exception as e:
                 st.error(f"❌ Terjadi kesalahan: {str(e)}")
+st.divider()
+st.header("🖼️ Image Encryption & Decryption")
+st.write(f"Menggunakan S-Box: **{selected_sbox_name}**")
+
+tab_img1, tab_img2 = st.tabs(["🔒 Encrypt Image", "🔓 Decrypt Image"])
+
+with tab_img1:
+    st.subheader("Enkripsi Gambar")
+    st.info(f"S-Box yang digunakan: {selected_sbox_name}")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        uploaded_img = st.file_uploader("Upload Gambar:", type=['png', 'jpg', 'jpeg', 'bmp'], key="img_encrypt")
+        img_key = st.text_input("Encryption Key (Max 16 chars):", "kuncirahasia1234", key="img_encrypt_key")
+
+    with col2:
+        if uploaded_img is not None:
+            img = Image.open(uploaded_img)
+            st.image(img, caption="Original Image", use_column_width=True)
+
+    if st.button("🔒 Encrypt Image", key="btn_encrypt_img"):
+        if not img_key:
+            st.error("Key tidak boleh kosong!")
+        elif uploaded_img is None:
+            st.error("Silakan upload gambar terlebih dahulu!")
+        else:
+            with st.spinner("Mengenkripsi gambar..."):
+                # Convert image to bytes
+                img = Image.open(uploaded_img)
+                img_bytes = img.tobytes()
+                mode = img.mode
+                size = img.size
+
+                # Prepare key
+                key_bytes = list(img_key.encode('utf-8').ljust(16, b'\0')[:16])
+                round_keys = simple_key_expansion(key_bytes, selected_sbox)
+
+                # Pad image bytes
+                padding_len = 16 - (len(img_bytes) % 16)
+                padded_img = img_bytes + bytes([padding_len] * padding_len)
+
+                # Encrypt
+                encrypted_bytes = []
+                for i in range(0, len(padded_img), 16):
+                    block = list(padded_img[i:i + 16])
+                    encrypted_block = aes_encrypt_block(block, 10, round_keys, selected_sbox)
+                    encrypted_bytes.extend(encrypted_block)
+
+                # Save metadata + encrypted data
+                metadata = f"{mode}|{size[0]}|{size[1]}|".encode('utf-8')
+                full_encrypted = metadata + bytes(encrypted_bytes)
+
+                # Create encrypted image visualization (noise)
+                encrypted_img = Image.frombytes('RGB', size, bytes(encrypted_bytes[:size[0] * size[1] * 3]), 'raw')
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.image(encrypted_img, caption="Encrypted Image (Visualization)", use_column_width=True)
+                with col2:
+                    # Download button
+                    st.download_button(
+                        label="⬇️ Download Encrypted Image",
+                        data=full_encrypted,
+                        file_name="encrypted_image.enc",
+                        mime="application/octet-stream"
+                    )
+
+                st.success("✅ Gambar berhasil dienkripsi!")
+
+with tab_img2:
+    st.subheader("Dekripsi Gambar")
+    st.info(f"S-Box yang akan digunakan: {selected_sbox_name}")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        encrypted_file = st.file_uploader("Upload Encrypted File (.enc):", type=['enc'], key="img_decrypt")
+        img_decrypt_key = st.text_input("Decryption Key (Max 16 chars):", "kuncirahasia1234", key="img_decrypt_key")
+
+    if st.button("🔓 Decrypt Image", key="btn_decrypt_img"):
+        if not img_decrypt_key:
+            st.error("Key tidak boleh kosong!")
+        elif encrypted_file is None:
+            st.error("Silakan upload file terenkripsi terlebih dahulu!")
+        else:
+            try:
+                with st.spinner("Mendekripsi gambar..."):
+                    # Read encrypted file
+                    encrypted_data = encrypted_file.read()
+
+                    # Extract metadata
+                    metadata_end = encrypted_data.index(b'|', encrypted_data.index(b'|', encrypted_data.index(
+                        b'|') + 1) + 1) + 1
+                    metadata = encrypted_data[:metadata_end].decode('utf-8')
+                    mode, width, height = metadata.rstrip('|').split('|')
+                    width, height = int(width), int(height)
+
+                    encrypted_bytes = encrypted_data[metadata_end:]
+
+                    # Prepare key
+                    key_bytes = list(img_decrypt_key.encode('utf-8').ljust(16, b'\0')[:16])
+                    round_keys = simple_key_expansion(key_bytes, selected_sbox)
+                    inv_sbox = INV_SBOXES[selected_sbox_name]
+
+                    # Decrypt
+                    decrypted_bytes = []
+                    for i in range(0, len(encrypted_bytes), 16):
+                        block = list(encrypted_bytes[i:i + 16])
+                        decrypted_block = aes_decrypt_block(block, 10, round_keys, inv_sbox)
+                        decrypted_bytes.extend(decrypted_block)
+
+                    # Unpad
+                    decrypted_bytes = bytes(decrypted_bytes)
+                    padding_len = decrypted_bytes[-1]
+                    img_bytes = decrypted_bytes[:-padding_len]
+
+                    # Reconstruct image
+                    decrypted_img = Image.frombytes(mode, (width, height), img_bytes)
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.image(decrypted_img, caption="Original Image", use_column_width=True)
+                    with col2:
+                        # Convert to downloadable format
+                        buf = io.BytesIO()
+                        decrypted_img.save(buf, format='PNG')
+                        buf.seek(0)
+
+                        st.download_button(
+                            label="⬇️ Download Decrypted Image",
+                            data=buf,
+                            file_name="decrypted_image.png",
+                            mime="image/png"
+                        )
+
+                    st.success("✅ Gambar berhasil didekripsi!")
+
+            except Exception as e:
+                st.error(f"❌ Gagal mendekripsi: {str(e)}")
+                st.error("Pastikan key dan S-box yang digunakan sama dengan saat enkripsi!")
