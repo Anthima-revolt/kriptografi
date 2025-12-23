@@ -7,6 +7,72 @@ from PIL import Image
 import io
 import matplotlib.pyplot as plt
 
+st.markdown("""
+<style>
+
+/* ====== GLOBAL ====== */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+/* ====== SIDEBAR ====== */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0B0F14, #020617);
+    border-right: 1px solid #00E67633;
+}
+
+/* ====== CARD EFFECT ====== */
+div[data-testid="stVerticalBlock"] > div {
+    background: #0F172A;
+    border-radius: 12px;
+    padding: 1.2rem;
+    border: 1px solid #00E67622;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.05);
+}
+
+/* ====== GLOW BUTTON ====== */
+button {
+    background: linear-gradient(90deg, #00E676, #00C853) !important;
+    color: black !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+}
+
+button:hover {
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.8);
+    transform: scale(1.03);
+}
+
+/* ====== INPUT ====== */
+input, textarea {
+    background-color: #020617 !important;
+    color: #00E676 !important;
+    border: 1px solid #00E67644 !important;
+}
+
+/* ====== MATRIX SCANLINE EFFECT ====== */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 230, 118, 0.03),
+        rgba(0, 230, 118, 0.03) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 # Import modul custom
 # Pastikan file sbox_generator.py, sbox_test.py, dan aes_engine.py ada di folder yang sama
 from sbox_generator import SBOXES, INV_SBOXES, AFFINE_128_DICT
