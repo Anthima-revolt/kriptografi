@@ -1,7 +1,7 @@
 [theme]
 
-primaryColor="#6eb52f"
-backgroundColor="#f0f0f5"
-secondaryBackgroundColor="#e0e0ef"
-textColor="#262730"
-font="monospace"
+primaryColor = "#22C55E"              # Neon green soft
+backgroundColor = "#0F172A"           # Dark navy (bukan hitam polos)
+secondaryBackgroundColor = "#1E293B"  # Card lebih terang
+textColor = "#E5E7EB"                 # Abu terang (nyaman)
+font = "sans serif"
