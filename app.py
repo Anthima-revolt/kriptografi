@@ -15,6 +15,69 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
+/* ===== BACKGROUND ANIMATION CONTAINER ===== */
+body {
+    background: radial-gradient(circle at top, #0B0F14, #020617);
+    overflow-x: hidden;
+}
+
+/* ===== FLOATING PARTICLES ===== */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+        radial-gradient(#00E67655 1px, transparent 1px),
+        radial-gradient(#00E67622 1px, transparent 1px);
+    background-size: 120px 120px, 60px 60px;
+    animation: floatParticles 40s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===== SCANLINE OVERLAY (ANIMATED) ===== */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 230, 118, 0.04),
+        rgba(0, 230, 118, 0.04) 1px,
+        transparent 1px,
+        transparent 5px
+    );
+    animation: scanMove 8s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+/* ===== ANIMATIONS ===== */
+@keyframes floatParticles {
+    from {
+        background-position: 0 0, 0 0;
+    }
+    to {
+        background-position: 600px 1200px, -600px 600px;
+    }
+}
+
+@keyframes scanMove {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 0 200px;
+    }
+}
+
+/* ===== FOREGROUND FIX ===== */
+section[data-testid="stAppViewContainer"] {
+    position: relative;
+    z-index: 2;
+}
+
 /* ====== SIDEBAR ====== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0B0F14, #020617);
