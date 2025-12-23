@@ -161,51 +161,6 @@ body .cyber-lines {
     to   { background-position: 0 1200px; }
 }
 
-</style>
-<div class="cyber-lines"></div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-
-/* ==============================
-   DIGITAL ZIG-ZAG LINES
-   ============================== */
-body .zigzag-lines {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-        repeating-linear-gradient(
-            135deg,
-            rgba(0, 230, 118, 0.08) 0px,
-            rgba(0, 230, 118, 0.08) 1px,
-            transparent 1px,
-            transparent 14px
-        );
-    animation: zigzagMove 30s linear infinite;
-    opacity: 0.35;
-}
-
-/* Animation */
-@keyframes zigzagMove {
-    from {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 800px 800px;
-    }
-}
-
-</style>
-
-<div class="zigzag-lines"></div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-
 /* ==============================
    HUD SCANNING LINE
    ============================== */
@@ -247,11 +202,41 @@ body .hud-scan {
     }
 }
 
+/* ==============================
+   DIGITAL ZIG-ZAG LINES
+   ============================== */
+body .zigzag-lines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        repeating-linear-gradient(
+            135deg,
+            rgba(0, 230, 118, 0.08) 0px,
+            rgba(0, 230, 118, 0.08) 1px,
+            transparent 1px,
+            transparent 14px
+        );
+    animation: zigzagMove 30s linear infinite;
+    opacity: 0.35;
+}
+
+/* Animation */
+@keyframes zigzagMove {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 800px 800px;
+    }
+}
+
 </style>
-
+<div class="cyber-lines"></div>
 <div class="hud-scan"></div>
+<div class="zigzag-lines"></div>
 """, unsafe_allow_html=True)
-
 
 
 # Import modul custom
