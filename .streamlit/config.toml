@@ -1,7 +1,7 @@
 [theme]
 
-primaryColor = "#22C55E"              # Neon green soft
-backgroundColor = "#0F172A"           # Dark navy (bukan hitam polos)
-secondaryBackgroundColor = "#1E293B"  # Card lebih terang
-textColor = "#E5E7EB"                 # Abu terang (nyaman)
+primaryColor = "#00E676"              # Neon green (hacker accent)
+backgroundColor = "#0B0F14"           # Dark almost-black (premium hacker)
+secondaryBackgroundColor = "#111827"  # Card / sidebar
+textColor = "#D1D5DB"                 # Soft white (anti capek mata)
 font = "sans serif"
