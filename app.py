@@ -143,12 +143,12 @@ body .cyber-lines {
     z-index: 0;
     background:
         linear-gradient(
-            90deg,
+            180deg,
             transparent 0%,
             rgba(0, 230, 118, 0.15) 50%,
             transparent 100%
-        );
-    background-size: 300px 100%;
+    );
+    background-size: 300px 300%;
     animation: cyberLinesMove 18s linear infinite;
     opacity: 0.6;
 }
@@ -156,18 +156,16 @@ body .cyber-lines {
 /* ==============================
    LINE ANIMATION
    ============================== */
-@keyframes cyberLinesMove {
-    from {
-        background-position: -300px 0;
-    }
-    to {
-        background-position: 1200px 0;
-    }
+@keyframes cyberLinesMoveVertical {
+    from { background-position: 0 -300px; }
+    to   { background-position: 0 1200px; }
 }
 
 </style>
 <div class="cyber-lines"></div>
 """, unsafe_allow_html=True)
+
+
 
 
 # Import modul custom
