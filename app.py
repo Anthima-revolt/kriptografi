@@ -15,7 +15,7 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
-/* ===== BACKGROUND ANIMATION CONTAINER ===== */
+/* ===== BACKGROUND ===== */
 body {
     background: radial-gradient(circle at top, #0B0F14, #020617);
     overflow-x: hidden;
@@ -35,7 +35,7 @@ body::after {
     z-index: 0;
 }
 
-/* ===== SCANLINE OVERLAY (ANIMATED) ===== */
+/* ===== SCANLINE OVERLAY (SINGLE, CLEAN) ===== */
 body::before {
     content: "";
     position: fixed;
@@ -51,7 +51,6 @@ body::before {
     pointer-events: none;
     z-index: 1;
 }
-
 
 /* ===== ANIMATIONS ===== */
 @keyframes floatParticles {
@@ -100,6 +99,7 @@ button {
     border-radius: 10px !important;
     font-weight: 600;
     box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+    transition: all 0.2s ease-in-out;
 }
 
 button:hover {
@@ -107,30 +107,11 @@ button:hover {
     transform: scale(1.03);
 }
 
-/* ====== INPUT ====== */
+/* ====== INPUT (TERMINAL STYLE) ====== */
 input, textarea {
     background-color: #020617 !important;
     color: #00E676 !important;
     border: 1px solid #00E67644 !important;
-}
-
-/* ====== MATRIX SCANLINE EFFECT ====== */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 230, 118, 0.03),
-        rgba(0, 230, 118, 0.03) 1px,
-        transparent 1px,
-        transparent 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
 }
 
 /* ==============================
@@ -145,98 +126,24 @@ body .cyber-lines {
         linear-gradient(
             180deg,
             transparent 0%,
-            rgba(0, 230, 118, 0.15) 50%,
+            rgba(0, 230, 118, 0.12) 50%,
             transparent 100%
-    );
-    background-size: 300px 300%;
+        );
+    background-size: 100% 300px;
     animation: cyberLinesMove 18s linear infinite;
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
-/* ==============================
-   LINE ANIMATION
-   ============================== */
-@keyframes cyberLinesMoveVertical {
+@keyframes cyberLinesMove {
     from { background-position: 0 -300px; }
     to   { background-position: 0 1200px; }
 }
 
-/* ==============================
-   HUD SCANNING LINE
-   ============================== */
-body .hud-scan {
-    position: fixed;
-    left: 0;
-    top: -20%;
-    width: 100%;
-    height: 120px;
-    pointer-events: none;
-    z-index: 1;
-    background: linear-gradient(
-        to bottom,
-        transparent,
-        rgba(0, 230, 118, 0.15),
-        transparent
-    );
-    animation: hudScanMove 7s ease-in-out infinite;
-}
-
-/* Animation */
-@keyframes hudScanMove {
-    0% {
-        top: -20%;
-        opacity: 0;
-    }
-    30% {
-        opacity: 0.6;
-    }
-    50% {
-        opacity: 0.9;
-    }
-    70% {
-        opacity: 0.6;
-    }
-    100% {
-        top: 120%;
-        opacity: 0;
-    }
-}
-
-/* ==============================
-   DIGITAL ZIG-ZAG LINES
-   ============================== */
-body .zigzag-lines {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-        repeating-linear-gradient(
-            135deg,
-            rgba(0, 230, 118, 0.08) 0px,
-            rgba(0, 230, 118, 0.08) 1px,
-            transparent 1px,
-            transparent 14px
-        );
-    animation: zigzagMove 30s linear infinite;
-    opacity: 0.35;
-}
-
-/* Animation */
-@keyframes zigzagMove {
-    from {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 800px 800px;
-    }
-}
-
 </style>
+
 <div class="cyber-lines"></div>
-<div class="hud-scan"></div>
-<div class="zigzag-lines"></div>
 """, unsafe_allow_html=True)
+
 
 
 # Import modul custom
