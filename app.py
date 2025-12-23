@@ -133,7 +133,40 @@ body::before {
     z-index: 9999;
 }
 
+/* ==============================
+   CYBER MOVING LINES (BACKGROUND)
+   ============================== */
+body .cyber-lines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(0, 230, 118, 0.15) 50%,
+            transparent 100%
+        );
+    background-size: 300px 100%;
+    animation: cyberLinesMove 18s linear infinite;
+    opacity: 0.6;
+}
+
+/* ==============================
+   LINE ANIMATION
+   ============================== */
+@keyframes cyberLinesMove {
+    from {
+        background-position: -300px 0;
+    }
+    to {
+        background-position: 1200px 0;
+    }
+}
+
 </style>
+<div class="cyber-lines"></div>
 """, unsafe_allow_html=True)
 
 
