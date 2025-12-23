@@ -203,6 +203,55 @@ body .zigzag-lines {
 <div class="zigzag-lines"></div>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+
+/* ==============================
+   HUD SCANNING LINE
+   ============================== */
+body .hud-scan {
+    position: fixed;
+    left: 0;
+    top: -20%;
+    width: 100%;
+    height: 120px;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(0, 230, 118, 0.15),
+        transparent
+    );
+    animation: hudScanMove 7s ease-in-out infinite;
+}
+
+/* Animation */
+@keyframes hudScanMove {
+    0% {
+        top: -20%;
+        opacity: 0;
+    }
+    30% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 0.9;
+    }
+    70% {
+        opacity: 0.6;
+    }
+    100% {
+        top: 120%;
+        opacity: 0;
+    }
+}
+
+</style>
+
+<div class="hud-scan"></div>
+""", unsafe_allow_html=True)
+
 
 
 # Import modul custom
